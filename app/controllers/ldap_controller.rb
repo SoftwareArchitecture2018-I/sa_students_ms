@@ -1,7 +1,6 @@
 require 'net/ldap'
 class LdapController < ApplicationController
 
-
   def connect
 
     ldap = Net::LDAP.new(
