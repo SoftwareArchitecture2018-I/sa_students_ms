@@ -17,7 +17,6 @@ class LdapController < ApplicationController
 
 
   def create 
-
     email = params[:email]
     password = params[:password]
     email = email[/\A\w+/].downcase
@@ -35,12 +34,32 @@ class LdapController < ApplicationController
       )
 
       if ldap.bind
-        render json: { userValid: true }
+        query = "select * from students where email LIKE '" + email + "@unal.edu.co'"
+        results = ActiveRecord::Base.connection.exec_query(query)
+        if results.present?
+          @newAuth = ObjAuth.new(email, password, "true")
+          puts("Ingresó correctamente")
+          render json: @newAuth
+        else
+          puts("No ingresó no está en DB")
+          @newAuth = ObjAuth.new(email, password, "false")
+          render json: @newAuth
+        end
       else
-        render json: { userValid: false }
+        puts("No ingresó no está en LDAP")
+        @newAuth = ObjAuth.new(email, password, "false")
+        render json: @newAuth
       end
 
     end
 
+  end
+end
+
+class ObjAuth
+  def initialize(email, password, answer)
+    @email = email
+    @password = password
+    @answer = answer
   end
 end
